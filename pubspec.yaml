@@ -1,6 +1,6 @@
 name: flutter_siri_shortcuts
 description: A comprehensive Flutter plugin for iOS Siri Shortcuts integration. Easily add, manage, and respond to Siri shortcuts in your Flutter apps.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/Commtel-Ltd/flutter_siri_shortcuts
 repository: https://github.com/Commtel-Ltd/flutter_siri_shortcuts
 issue_tracker: https://github.com/Commtel-Ltd/flutter_siri_shortcuts/issues

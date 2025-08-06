@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_siri_shortcuts'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'A comprehensive Flutter plugin for iOS Siri Shortcuts integration.'
   s.description      = <<-DESC
 A comprehensive Flutter plugin for iOS Siri Shortcuts integration. Easily add, manage, and respond to Siri shortcuts in your Flutter apps.
