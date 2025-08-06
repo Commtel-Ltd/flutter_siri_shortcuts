@@ -18,15 +18,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initializeShortcuts() async {
-    // Configure your shortcut
-    final shortcutConfig = FlutterSiriShortcutArgs(
-      title: 'My Action',
-      activityType: 'com.myapp.my_action',
-      suggestedInvocationPhrase: 'Run my action',
-      userInfo: {'action': 'main_action'},
-    );
-
-    _shortcuts = FlutterSiriShortcuts(initOptions: shortcutConfig);
+    _shortcuts = FlutterSiriShortcuts();
     await _shortcuts.initialize();
 
     // Listen for activations
