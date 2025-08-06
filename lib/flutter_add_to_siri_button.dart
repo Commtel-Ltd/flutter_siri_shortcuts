@@ -1,19 +1,22 @@
+/// Native iOS "Add to Siri" Button Widget
+/// 
+/// This file provides the [AddToSiriButton] widget which renders
+/// the native iOS "Add to Siri" button component.
+library flutter_add_to_siri_button;
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-// ignore: must_be_immutable
 class AddToSiriButton extends StatelessWidget {
-  String title = "default";
-  String url = "default";
-  String id = "default";
-  double? height = 20.0;
+  final String title;
+  final String id;
+  final double? height;
 
-  AddToSiriButton({
+  const AddToSiriButton({
     super.key,
     required this.title,
     required this.id,
-    required this.url,
-    this.height,
+    this.height = 44.0,
   });
 
   @override
@@ -22,11 +25,10 @@ class AddToSiriButton extends StatelessWidget {
     Map<String, dynamic> creationParams = <String, dynamic>{
       'title': title,
       'id': id,
-      'url': url
     };
 
-    return Container(
-      height: height ?? 20.0,
+    return SizedBox(
+      height: height ?? 44.0,
       child: UiKitView(
         viewType: viewType,
         creationParams: creationParams,

@@ -11,7 +11,7 @@ import Intents
 import IntentsUI
 import UIKit
 
-@available(iOS 12.0, *)
+@available(iOS 15.0, *)
 class AddToSiriButtonFactory: NSObject, FlutterPlatformViewFactory {
   private var messenger: FlutterBinaryMessenger
   
@@ -72,7 +72,6 @@ class AddToSiriButton: UIView {
     let activity = NSUserActivity(activityType: args["id"] as! String)
     activity.title = args["title"] as? String
     activity.suggestedInvocationPhrase = args["title"] as? String
-    activity.webpageURL = URL(string: args["url"] as! String)
     activity.userInfo?["fromShortcut"] = true
     let shortcut = INShortcut(userActivity: activity);
     

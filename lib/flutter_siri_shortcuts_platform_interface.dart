@@ -1,33 +1,59 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
-import 'flutter_siri_shortcuts.dart';
+/// Callback type for shortcut activation
+typedef ShortcutActivationCallback = void Function(String activityType, Map<String, dynamic>? userInfo);
 
-/*
-const opts1: ShortcutOptions = {
-  activityType: 'com.github.gustash.SiriShortcutsModuleExample.sayHello',
-  title: 'Say Hi',
-  userInfo: {
-    foo: 1,
-    bar: 'baz',
-    baz: 34.5,
-  },
-  requiredUserInfoKeys: ['foo', 'bar', 'baz'],
-  keywords: ['kek', 'foo', 'bar'],
-  persistentIdentifier:
-    'com.github.gustash.SiriShortcutsModuleExample.sayHello',
-  isEligibleForSearch: true,
-  isEligibleForPrediction: true,
-  suggestedInvocationPhrase: 'Say something',
-  needsSave: true,
-};
-*/
+/// Configuration for a Siri shortcut
+class FlutterSiriShortcutArgs {
+  final String title;
+  final String activityType;
+  final String suggestedInvocationPhrase;
+  final String? persistentIdentifier;
+  final List<String>? requiredUserInfoKeys;
+  final List<String>? keywords;
+  final Map<String, String>? userInfo;
+  final bool? isEligibleForSearch;
+  final bool? isEligibleForPrediction;
+  final bool? needsSave;
 
+  FlutterSiriShortcutArgs({
+    required this.title,
+    required this.activityType,
+    required this.suggestedInvocationPhrase,
+    this.persistentIdentifier,
+    this.isEligibleForPrediction = true,
+    this.isEligibleForSearch = true,
+    this.keywords,
+    this.needsSave = true,
+    this.requiredUserInfoKeys,
+    this.userInfo,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'activityType': activityType,
+      'suggestedInvocationPhrase': suggestedInvocationPhrase,
+      'persistentIdentifier': persistentIdentifier,
+      'isEligibleForPrediction': isEligibleForPrediction,
+      'isEligibleForSearch': isEligibleForSearch,
+      'keywords': keywords,
+      'needsSave': needsSave,
+      'requiredUserInfoKeys': requiredUserInfoKeys,
+      'userInfo': userInfo,
+    };
+  }
+}
+
+/// Platform interface for Siri shortcuts
 abstract class FlutterSiriShortcutsPlatform extends PlatformInterface {
   FlutterSiriShortcutsPlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static FlutterSiriShortcutsPlatform _instance = FlutterSiriShortcuts();
+  static FlutterSiriShortcutsPlatform _instance = MethodChannelFlutterSiriShortcuts();
 
   static FlutterSiriShortcutsPlatform get instance => _instance;
 
@@ -50,5 +76,41 @@ abstract class FlutterSiriShortcutsPlatform extends PlatformInterface {
 
   Future<bool?> clearShortcuts() {
     throw UnimplementedError('clearShortcuts() has not been implemented.');
+  }
+}
+
+/// Method channel implementation of the platform interface
+class MethodChannelFlutterSiriShortcuts extends FlutterSiriShortcutsPlatform {
+  @visibleForTesting
+  final methodChannel = const MethodChannel('flutter_siri_shortcuts');
+
+  @override
+  Future<String?> getPlatformVersion() async {
+    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    return version;
+  }
+
+  @override
+  Future<bool?> presentShortcut({FlutterSiriShortcutArgs? options}) async {
+    if (options == null) {
+      throw ArgumentError('FlutterSiriShortcutArgs options cannot be null');
+    }
+    final result = await methodChannel.invokeMethod<bool>('presentShortcut', options.toMap());
+    return result;
+  }
+
+  @override
+  Future<bool?> donateShortcut({FlutterSiriShortcutArgs? options}) async {
+    if (options == null) {
+      throw ArgumentError('FlutterSiriShortcutArgs options cannot be null');
+    }
+    final result = await methodChannel.invokeMethod<bool>('donateShortcut', options.toMap());
+    return result;
+  }
+
+  @override
+  Future<bool?> clearShortcuts() async {
+    final result = await methodChannel.invokeMethod<bool>('clearShortcuts');
+    return result;
   }
 }

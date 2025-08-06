@@ -2,8 +2,10 @@ import Flutter
 import UIKit
 
 public class FlutterSiriShortcutsPlugin: NSObject, FlutterPlugin {
+  private static var channel: FlutterMethodChannel?
+  
   public static func register(with registrar: FlutterPluginRegistrar) {
-    if #available(iOS 12.0, *) {
+    if #available(iOS 15.0, *) {
       let factory = AddToSiriButtonFactory(messenger: registrar.messenger())
       registrar.register(factory, withId: "AddToSiriButton")
     } else {
@@ -11,8 +13,24 @@ public class FlutterSiriShortcutsPlugin: NSObject, FlutterPlugin {
     }
     
     let channel = FlutterMethodChannel(name: "flutter_siri_shortcuts", binaryMessenger: registrar.messenger())
+    self.channel = channel
     let instance = FlutterSiriShortcutsPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
+    
+    // Register for shortcut activation handling
+    registrar.addApplicationDelegate(instance)
+  }
+  
+  // Handle shortcut activation from Siri
+  public static func handleShortcutActivation(activityType: String, userInfo: [AnyHashable: Any]?) {
+    guard let channel = self.channel else { return }
+    
+    var data: [String: Any] = ["activityType": activityType]
+    if let userInfo = userInfo {
+      data["userInfo"] = userInfo
+    }
+    
+    channel.invokeMethod("onShortcutActivated", arguments: data)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -42,5 +60,20 @@ public class FlutterSiriShortcutsPlugin: NSObject, FlutterPlugin {
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+  
+  // Handle shortcut activation from Siri
+  public func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+    
+    // Check if this is a Siri shortcut activation
+    if userActivity.activityType != NSUserActivityTypeBrowsingWeb {
+      FlutterSiriShortcutsPlugin.handleShortcutActivation(
+        activityType: userActivity.activityType,
+        userInfo: userActivity.userInfo
+      )
+      return true
+    }
+    
+    return false
   }
 }

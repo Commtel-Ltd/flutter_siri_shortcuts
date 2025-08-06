@@ -1,42 +1,107 @@
-# flutter_siri_shortcuts
+# Siri Shortcuts - Simple Usage Guide
 
-A Flutter plugin to use iOS shortcuts
+A clean, minimal implementation for creating Siri shortcuts and detecting when they're activated.
 
-|             | Android | iOS   | Linux | macOS | Web | Windows |
-| ----------- | ------- | ----- | ----- | ----- | --- | ------- |
-| **Support** | NO      | 11.0+ | NO    | Soon  | NO  | NO      |
+## Quick Start
 
-## Usage
-
-To use this plugin, add `flutter_siri_shortcuts` as a [dependency in your pubspec.yaml file](https://flutter.dev/platform-plugins/).
-
-### Example
-
-<?code-excerpt "example/main.dart (basic-example)"?>
+### 1. Initialize and Listen for Shortcuts
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_siri_shortcuts/flutter_siri_shortcuts.dart';
+class _MyAppState extends State<MyApp> {
+  late FlutterSiriShortcuts _shortcuts;
+  String _status = 'No shortcut activated yet';
 
-Widget build(BuildContext context) {
-    return Center(
-              child: AddToSiriButton(
-              title: 'something',
-              id: 'test1',
-              url: 'https://someurl.com',
-            ),
-        );
+  @override
+  void initState() {
+    super.initState();
+    _initializeShortcuts();
+  }
+
+  Future<void> _initializeShortcuts() async {
+    // Configure your shortcut
+    final shortcutConfig = FlutterSiriShortcutArgs(
+      title: 'My Action',
+      activityType: 'com.myapp.my_action',
+      suggestedInvocationPhrase: 'Run my action',
+      userInfo: {'action': 'main_action'},
+    );
+
+    _shortcuts = FlutterSiriShortcuts(initOptions: shortcutConfig);
+    await _shortcuts.initialize();
+
+    // Listen for activations
+    _shortcuts.setShortcutActivationCallback(_onShortcutActivated);
+  }
+
+  void _onShortcutActivated(String activityType, Map<String, dynamic>? userInfo) {
+    setState(() {
+      _status = 'Activated: $activityType';
+    });
+    
+    // Your task execution logic here
+    print('Executing: $activityType with data: $userInfo');
+  }
 }
 ```
 
-See the example app for more complex examples.
+### 2. Add Shortcut to Siri
 
-## Configuration
+```dart
+// Show "Add to Siri" button
+AddToSiriButton(
+  title: 'My Action',
+  id: 'my_action',
+  url: 'https://example.com',
+)
 
-### Options
+// Or donate shortcut programmatically
+await _shortcuts.donateShortcut();
+```
 
-You only need to provide options related to the shortcut.
+### 3. iOS Setup
 
----
+Add this to your `ios/Runner/AppDelegate.swift`:
 
-MIT License
+```swift
+override func application(
+  _ application: UIApplication,
+  continue userActivity: NSUserActivity,
+  restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+) -> Bool {
+  
+  if userActivity.activityType != NSUserActivityTypeBrowsingWeb {
+    if let flutterEngine = window?.rootViewController as? FlutterViewController {
+      let channel = FlutterMethodChannel(
+        name: "flutter_siri_shortcuts",
+        binaryMessenger: flutterEngine.binaryMessenger
+      )
+      
+      var data: [String: Any] = ["activityType": userActivity.activityType]
+      if let userInfo = userActivity.userInfo {
+        data["userInfo"] = userInfo
+      }
+      
+      channel.invokeMethod("onShortcutActivated", arguments: data)
+    }
+    return true
+  }
+  
+  return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+}
+```
+
+## Core Features
+
+- **Create shortcuts**: Configure shortcut details and user data
+- **Detect activation**: Get notified when Siri triggers your shortcut
+- **Execute tasks**: Run your app logic when shortcuts are activated
+- **Show status**: Display if shortcuts are already added to Siri
+- **Clean up**: Clear shortcuts when needed
+
+## That's it!
+
+This minimal setup gives you everything you need:
+1. Create shortcuts with custom data
+2. Detect when they're triggered by Siri
+3. Execute your app logic in response
+4. Clean, readable code with no bloat
